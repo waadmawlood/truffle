@@ -1,0 +1,46 @@
+{
+    "name": "waad/truffle",
+    "description": "Laravel package for in-memory driver database Eloquent model connections",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo_sqlite": "*",
+        "ext-sqlite3": "*",
+        "illuminate/database": ">=5.5",
+        "illuminate/support": ">=5.5"
+    },
+    "require-dev": {
+        "orchestra/testbench": "*",
+        "phpunit/phpunit": "*",
+        "phpstan/phpstan": "*",
+        "friendsofphp/php-cs-fixer": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Waad\\Truffle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Waad\\Truffle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Waad\\Truffle\\TruffleServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "stan": "vendor/bin/phpstan analyse src --memory-limit 1G",
+        "format": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php",
+        "cs": [
+            "@test",
+            "@stan",
+            "@format"
+        ]
+    }
+}
