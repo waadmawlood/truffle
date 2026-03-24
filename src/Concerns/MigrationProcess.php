@@ -20,25 +20,73 @@ trait MigrationProcess
         $chunkRecordsInt = $this->getInsertChunkRecords();
         $chunkRecords = ! empty($records) ? array_chunk($records, $chunkRecordsInt) : [];
         foreach ($chunkRecords as $records) {
-            // Convert arrays to JSON for database insertion
-            $processedRecords = array_map(function ($record) {
-                foreach ($record as $key => $value) {
-                    if (is_array($value)) {
-                        $record[$key] = json_encode($value);
-                    }
-                }
-
-                return $record;
-            }, $records);
+            $processedRecords = $this->processRecordsForInsert($records);
 
             static::insert($processedRecords);
+        }
+    }
+
+    public function migrateToDefaultConnection(): void
+    {
+        $defaultConnectionName = config('database.default');
+
+        if ($defaultConnectionName === $this->getConnectionName()) {
+            return;
+        }
+
+        $connection = app('db')->connection($defaultConnectionName);
+        $tableName = $this->getTable();
+
+        if ($connection->getSchemaBuilder()->hasTable($tableName)) {
+            return;
+        }
+
+        $records = $this->getRecords();
+        $firstRecord = ! empty($records) ? reset($records) : null;
+
+        try {
+            $connection->getSchemaBuilder()->create($tableName, function (Blueprint $table) use ($firstRecord) {
+                $table->temporary();
+                $this->buildColumnDefinitions($table, $firstRecord);
+            });
+        } catch (QueryException $e) {
+            if (! Str::contains($e->getMessage(), ['already exists'])) {
+                throw $e;
+            }
+
+            return;
+        }
+
+        if (! empty($records)) {
+            $chunkInt = $this->getInsertChunkRecords();
+            foreach (array_chunk($records, $chunkInt) as $chunk) {
+                $connection->table($tableName)->insert(
+                    $this->processRecordsForInsert($chunk)
+                );
+            }
         }
     }
 
     public function createTable($firstRecord)
     {
         $this->createTableSafely($this->getTable(), function ($table) use ($firstRecord) {
-            $schema = $this->getSchema();
+            $this->buildColumnDefinitions($table, $firstRecord);
+            $this->thenMigration($table);
+        });
+    }
+
+    public function createEmptyTable()
+    {
+        $this->createTableSafely($this->getTable(), function ($table) {
+            $this->buildColumnDefinitions($table);
+        });
+    }
+
+    protected function buildColumnDefinitions(Blueprint $table, ?array $firstRecord = null): void
+    {
+        $schema = $this->getSchema();
+
+        if ($firstRecord !== null) {
             foreach ($firstRecord as $column => $value) {
                 if (is_int($value)) {
                     $type = DataType::Integer;
@@ -67,19 +115,8 @@ trait MigrationProcess
                 $table->{$type}($column)->nullable();
             }
 
-            $firstRecordKeys = array_keys($firstRecord);
-            if ($this->usesTimestamps() && (! in_array('updated_at', $firstRecordKeys) || ! in_array('created_at', $firstRecordKeys))) {
-                $table->timestamps();
-            }
-
-            $this->thenMigration($table);
-        });
-    }
-
-    public function createEmptyTable()
-    {
-        $this->createTableSafely($this->getTable(), function ($table) {
-            $schema = $this->getSchema();
+            $keys = array_keys($firstRecord);
+        } else {
             foreach ($schema as $name => $type) {
                 if ($name === $this->primaryKey && in_array($type, [DataType::Id, DataType::UnsignedBigInteger, DataType::BigInteger])) {
                     $table->increments($this->primaryKey);
@@ -95,11 +132,25 @@ trait MigrationProcess
                 $table->{$type}($name)->nullable();
             }
 
-            $schemaKeys = array_keys($schema);
-            if ($this->usesTimestamps() && (! in_array('updated_at', $schemaKeys) || ! in_array('created_at', $schemaKeys))) {
-                $table->timestamps();
+            $keys = array_keys($schema);
+        }
+
+        if ($this->usesTimestamps() && (! in_array('updated_at', $keys) || ! in_array('created_at', $keys))) {
+            $table->timestamps();
+        }
+    }
+
+    protected function processRecordsForInsert(array $records): array
+    {
+        return array_map(function ($record) {
+            foreach ($record as $key => $value) {
+                if (is_array($value)) {
+                    $record[$key] = json_encode($value);
+                }
             }
-        });
+
+            return $record;
+        }, $records);
     }
 
     protected function createTableSafely(string $tableName, Closure $callback)

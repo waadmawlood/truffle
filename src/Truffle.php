@@ -24,10 +24,14 @@ trait Truffle
 
         if (method_exists(static::class, 'whenBooted')) {
             static::whenBooted(function () {
-                (new static())->migrate();
+                $instance = new static();
+                $instance->migrate();
+                $instance->migrateToDefaultConnection();
             });
         } else {
-            (new static())->migrate();
+            $instance = new static();
+            $instance->migrate();
+            $instance->migrateToDefaultConnection();
         }
     }
 }
