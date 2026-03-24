@@ -12,7 +12,6 @@
     },
     "require-dev": {
         "orchestra/testbench": "*",
-        "phpunit/phpunit": "*",
         "phpstan/phpstan": "*",
         "friendsofphp/php-cs-fixer": "*"
     },
