@@ -13,10 +13,6 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - php: 8.0
-            laravel: 8.*
-          - php: 8.0
-            laravel: 9.*
           - php: 8.1
             laravel: 10.*
           - php: 8.2
@@ -24,7 +20,7 @@ jobs:
           - php: 8.3
             laravel: 12.*
           - php: 8.4
-            laravel: 12.*
+            laravel: 13.*
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
