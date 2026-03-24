@@ -194,6 +194,13 @@ class AppSetting extends Model
 }
 ```
 
+### Rule Exist Validation `exists`
+```php
+use App\Models\Category;
+
+'category_id' => ['required', 'integer', Rule::exists(Category::class, 'id')],
+```
+
 ## API Reference
 
 ### Core Methods

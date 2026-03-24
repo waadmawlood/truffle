@@ -18,8 +18,14 @@ trait Truffle
 
     public static function bootTruffle()
     {
-        $instance = new static();
-        static::resolveConnection();
-        $instance->migrate();
+        app('db')->extend(static::class, fn () => static::resolveConnection());
+
+        if (method_exists(static::class, 'whenBooted')) {
+            static::whenBooted(function () {
+                (new static())->migrate();
+            });
+        } else {
+            (new static())->migrate();
+        }
     }
 }
