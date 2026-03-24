@@ -12,7 +12,7 @@ trait MigrationProcess
 {
     public function migrate()
     {
-        $records = $this->getRecords();
+        $records = $this->getCachedRecords();
         ! empty($records) ?
             $this->createTable(reset($records)) :
             $this->createEmptyTable();
