@@ -8,7 +8,7 @@
 
 A Laravel package for creating in-memory models using SQLite. Perfect for static data, test fixtures, and high-performance read operations.
 
-**Features**: Zero configuration • Full Eloquent support • Type safety • Performance optimized
+**Features**: Zero configuration • Full Eloquent support • Type safety • Performance optimized • Per-model caching
 
 ## Installation
 
@@ -152,6 +152,95 @@ protected function thenMigration(Blueprint $table)
 }
 ```
 
+### Caching Support
+
+Enable per-model caching to avoid rebuilding records on every request. Each model can independently toggle caching, choose a cache driver, and set a TTL.
+
+#### Basic Caching (Cache Forever)
+```php
+class Country extends Model
+{
+    use Truffle;
+
+    protected $truffleCache = true; // Enable caching
+
+    protected $records = [
+        ['code' => 'US', 'name' => 'United States'],
+        ['code' => 'CA', 'name' => 'Canada'],
+    ];
+}
+```
+
+#### Caching with TTL
+```php
+class Product extends Model
+{
+    use Truffle;
+
+    protected $truffleCache = true;
+    protected $truffleCacheTtl = 3600; // Cache for 1 hour (seconds)
+
+    protected $records = [
+        ['id' => 1, 'name' => 'Laptop', 'price' => 999.99],
+    ];
+}
+```
+
+#### Custom Cache Driver & Prefix
+```php
+class Setting extends Model
+{
+    use Truffle;
+
+    protected $truffleCache = true;
+    protected $truffleCacheDriver = 'redis'; // Use Redis instead of default
+    protected $truffleCacheTtl = 1800;       // 30 minutes
+    protected $truffleCachePrefix = 'app_settings_'; // Custom cache key prefix
+
+    protected $records = [
+        ['key' => 'app_name', 'value' => 'My App'],
+    ];
+}
+```
+
+#### No Caching (Default)
+```php
+class TemporaryData extends Model
+{
+    use Truffle;
+
+    // No $truffleCache property — caching is disabled by default
+
+    protected $records = [
+        ['id' => 1, 'label' => 'Draft'],
+    ];
+}
+```
+
+#### Cache Properties Reference
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `$truffleCache` | `bool` | `false` | Enable/disable caching for this model |
+| `$truffleCacheDriver` | `string\|null` | `null` | Cache driver (`file`, `redis`, `array`, etc.). `null` uses Laravel default |
+| `$truffleCacheTtl` | `int\|null` | `null` | Time-to-live in seconds. `null` caches forever |
+| `$truffleCachePrefix` | `string` | `'truffle_'` | Prefix for the cache key |
+
+#### Cache Management Methods
+```php
+// Clear cached records for a model
+Product::clearTruffleCache();
+
+// Clear cache and re-fetch fresh records
+Product::refreshTruffleCache();
+
+// Check if caching is enabled
+$model->isTruffleCacheEnabled();
+
+// Get the generated cache key
+$model->getTruffleCacheKey();
+```
+
 ## Use Cases
 
 ### Static Reference Data
@@ -211,6 +300,18 @@ $model->getSchema()                 // Get schema definition
 Model::resolveConnection()          // Get the SQLite connection
 ```
 
+### Cache Methods
+```php
+Model::clearTruffleCache()          // Remove cached records
+Model::refreshTruffleCache()        // Clear and re-cache records
+$model->isTruffleCacheEnabled()     // Check if caching is active
+$model->getCachedRecords()          // Get records (from cache if enabled)
+$model->getTruffleCacheKey()        // Get the cache key for this model
+$model->getTruffleCacheDriver()     // Get configured cache driver
+$model->getTruffleCacheTtl()        // Get configured TTL
+$model->getTruffleCachePrefix()     // Get configured cache key prefix
+```
+
 ## Testing
 
 ```bash
@@ -230,7 +331,7 @@ composer test
 - [x] Eloquent integration
 - [x] SQLite in-memory support
 - [ ] SQLite file support
-- [ ] Caching support
+- [x] Caching support
 - [ ] Support for CSV/JSON/XML files
 - [ ] Multi-tenancy support
 
