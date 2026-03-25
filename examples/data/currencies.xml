@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<currencies>
+    <currency>
+        <code>USD</code>
+        <name>US Dollar</name>
+        <symbol>$</symbol>
+    </currency>
+    <currency>
+        <code>EUR</code>
+        <name>Euro</name>
+        <symbol>&#8364;</symbol>
+    </currency>
+    <currency>
+        <code>GBP</code>
+        <name>British Pound</name>
+        <symbol>&#163;</symbol>
+    </currency>
+    <currency>
+        <code>JPY</code>
+        <name>Japanese Yen</name>
+        <symbol>&#165;</symbol>
+    </currency>
+</currencies>

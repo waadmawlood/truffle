@@ -1,0 +1,7 @@
+[
+    {"id": 1, "name": "users.view", "guard": "web", "description": "View users"},
+    {"id": 2, "name": "users.create", "guard": "web", "description": "Create users"},
+    {"id": 3, "name": "users.edit", "guard": "web", "description": "Edit users"},
+    {"id": 4, "name": "users.delete", "guard": "web", "description": "Delete users"},
+    {"id": 5, "name": "api.access", "guard": "api", "description": "Access API"}
+]
