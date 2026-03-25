@@ -152,6 +152,70 @@ protected function thenMigration(Blueprint $table)
 }
 ```
 
+### SQLite File Support
+
+By default, Truffle uses in-memory SQLite databases which are rebuilt on every request. You can persist data to a SQLite file instead, which is ideal for large datasets that don't need to be rebuilt every time.
+
+#### Basic File Storage
+```php
+class Product extends Model
+{
+    use Truffle;
+
+    protected static $truffleSqliteFile = '/path/to/database/products.sqlite';
+
+    protected $records = [
+        ['id' => 1, 'name' => 'Laptop', 'price' => 999.99],
+        ['id' => 2, 'name' => 'Coffee Mug', 'price' => 12.50],
+    ];
+}
+```
+
+#### Using Laravel Helpers
+```php
+class Country extends Model
+{
+    use Truffle;
+
+    // Store in storage/truffle/countries.sqlite
+    protected static $truffleSqliteFile;
+
+    public function __construct(array $attributes = [])
+    {
+        $this->truffleSqliteFile ??= storage_path('truffle/countries.sqlite');
+        parent::__construct($attributes);
+    }
+
+    protected $records = [
+        ['code' => 'US', 'name' => 'United States'],
+        ['code' => 'CA', 'name' => 'Canada'],
+    ];
+}
+```
+
+> **Note:** Directories are created automatically if they don't exist. When a file-based SQLite table already exists, migration is skipped to avoid duplicate records.
+
+#### File Management Methods
+```php
+// Delete the SQLite file and clear connections
+Product::deleteTruffleSqliteFile();
+
+// Delete the file and rebuild data from scratch
+Product::refreshTruffleSqliteFile();
+
+// Check if file-based SQLite is enabled
+Product::isTruffleSqliteFile();
+
+// Get the configured file path
+Product::getTruffleSqliteFile();
+```
+
+#### SQLite File Properties Reference
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `$truffleSqliteFile` | `string\|null` | `null` | Path to SQLite file. `null` uses in-memory (`:memory:`) |
+
 ### Caching Support
 
 Enable per-model caching to avoid rebuilding records on every request. Each model can independently toggle caching, choose a cache driver, and set a TTL.
@@ -300,6 +364,14 @@ $model->getSchema()                 // Get schema definition
 Model::resolveConnection()          // Get the SQLite connection
 ```
 
+### SQLite File Methods
+```php
+Model::deleteTruffleSqliteFile()    // Delete the SQLite file
+Model::refreshTruffleSqliteFile()   // Delete file and rebuild data
+Model::isTruffleSqliteFile()        // Check if using file-based SQLite
+Model::getTruffleSqliteFile()       // Get the configured file path
+```
+
 ### Cache Methods
 ```php
 Model::clearTruffleCache()          // Remove cached records
@@ -330,7 +402,7 @@ composer test
 
 - [x] Eloquent integration
 - [x] SQLite in-memory support
-- [ ] SQLite file support
+- [x] SQLite file support
 - [x] Caching support
 - [ ] Support for CSV/JSON/XML files
 - [ ] Multi-tenancy support

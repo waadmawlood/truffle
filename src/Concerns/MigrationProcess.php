@@ -12,6 +12,10 @@ trait MigrationProcess
 {
     public function migrate()
     {
+        if ($this->shouldSkipMigration()) {
+            return;
+        }
+
         $records = $this->getCachedRecords();
         ! empty($records) ?
             $this->createTable(reset($records)) :
@@ -24,6 +28,25 @@ trait MigrationProcess
 
             static::insert($processedRecords);
         }
+    }
+
+    protected function shouldSkipMigration(): bool
+    {
+        if (! static::isTruffleSqliteFile()) {
+            return false;
+        }
+
+        $file = static::getTruffleSqliteFile();
+        if (! $file || ! file_exists($file) || filesize($file) === 0) {
+            return false;
+        }
+
+        $connection = static::resolveConnection();
+        if (! $connection) {
+            return false;
+        }
+
+        return $connection->getSchemaBuilder()->hasTable($this->getTable());
     }
 
     public function migrateToDefaultConnection(): void

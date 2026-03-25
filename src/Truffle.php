@@ -34,4 +34,25 @@ trait Truffle
             $instance->migrateToDefaultConnection();
         }
     }
+
+    public static function deleteTruffleSqliteFile(): bool
+    {
+        $file = static::getTruffleSqliteFile();
+        if ($file && file_exists($file)) {
+            static::clearConnections();
+
+            return unlink($file);
+        }
+
+        return false;
+    }
+
+    public static function refreshTruffleSqliteFile(): void
+    {
+        static::deleteTruffleSqliteFile();
+        static::clearConnections();
+
+        $instance = new static();
+        $instance->migrate();
+    }
 }
