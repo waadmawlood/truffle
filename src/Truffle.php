@@ -35,7 +35,7 @@ trait Truffle
         }
     }
 
-    public static function deleteTruffleSqliteFile(): bool
+    public static function deleteTruffleSqliteFile()
     {
         $file = static::getTruffleSqliteFile();
         if ($file && file_exists($file)) {
@@ -47,7 +47,7 @@ trait Truffle
         return false;
     }
 
-    public static function refreshTruffleSqliteFile(): void
+    public static function refreshTruffleSqliteFile()
     {
         static::deleteTruffleSqliteFile();
         static::clearConnections();

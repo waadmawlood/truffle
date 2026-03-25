@@ -30,7 +30,7 @@ trait MigrationProcess
         }
     }
 
-    protected function shouldSkipMigration(): bool
+    protected function shouldSkipMigration()
     {
         if (! static::isTruffleSqliteFile()) {
             return false;
@@ -49,7 +49,7 @@ trait MigrationProcess
         return $connection->getSchemaBuilder()->hasTable($this->getTable());
     }
 
-    public function migrateToDefaultConnection(): void
+    public function migrateToDefaultConnection()
     {
         $defaultConnectionName = config('database.default');
 
@@ -105,7 +105,7 @@ trait MigrationProcess
         });
     }
 
-    protected function buildColumnDefinitions(Blueprint $table, ?array $firstRecord = null): void
+    protected function buildColumnDefinitions(Blueprint $table, $firstRecord = null)
     {
         $schema = $this->getSchema();
 
@@ -163,7 +163,7 @@ trait MigrationProcess
         }
     }
 
-    protected function processRecordsForInsert(array $records): array
+    protected function processRecordsForInsert(array $records)
     {
         return array_map(function ($record) {
             foreach ($record as $key => $value) {

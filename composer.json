@@ -15,6 +15,11 @@
         "phpstan/phpstan": "*",
         "friendsofphp/php-cs-fixer": "*"
     },
+    "config": {
+        "audit": {
+            "block-insecure": false
+        }
+    },
     "autoload": {
         "psr-4": {
             "Waad\\Truffle\\": "src/"

@@ -27,12 +27,12 @@ trait RunTimeConnectionConfig
         ];
     }
 
-    public static function getTruffleSqliteFile(): ?string
+    public static function getTruffleSqliteFile()
     {
         return isset(static::$truffleSqliteFile) ? static::$truffleSqliteFile : null;
     }
 
-    public static function isTruffleSqliteFile(): bool
+    public static function isTruffleSqliteFile()
     {
         return static::getTruffleSqliteFile() !== null;
     }

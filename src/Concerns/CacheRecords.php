@@ -6,27 +6,27 @@ use Illuminate\Support\Facades\Cache;
 
 trait CacheRecords
 {
-    public function isTruffleCacheEnabled(): bool
+    public function isTruffleCacheEnabled()
     {
         return isset($this->truffleCache) ? (bool) $this->truffleCache : false;
     }
 
-    public function getTruffleCacheDriver(): ?string
+    public function getTruffleCacheDriver()
     {
         return isset($this->truffleCacheDriver) ? $this->truffleCacheDriver : null;
     }
 
-    public function getTruffleCacheTtl(): ?int
+    public function getTruffleCacheTtl()
     {
         return isset($this->truffleCacheTtl) ? (int) $this->truffleCacheTtl : null;
     }
 
-    public function getTruffleCachePrefix(): string
+    public function getTruffleCachePrefix()
     {
         return isset($this->truffleCachePrefix) ? $this->truffleCachePrefix : 'truffle_';
     }
 
-    public function getTruffleCacheKey(): string
+    public function getTruffleCacheKey()
     {
         return $this->getTruffleCachePrefix().md5(static::class);
     }
@@ -38,7 +38,7 @@ trait CacheRecords
         return $driver ? Cache::store($driver) : Cache::store();
     }
 
-    public function getCachedRecords(): array
+    public function getCachedRecords()
     {
         if (! $this->isTruffleCacheEnabled()) {
             return $this->getRecords();
@@ -55,14 +55,14 @@ trait CacheRecords
         return $store->rememberForever($key, fn () => $this->getRecords());
     }
 
-    public static function clearTruffleCache(): bool
+    public static function clearTruffleCache()
     {
         $instance = new static();
 
         return $instance->getTruffleCacheStore()->forget($instance->getTruffleCacheKey());
     }
 
-    public static function refreshTruffleCache(): array
+    public static function refreshTruffleCache()
     {
         static::clearTruffleCache();
 
