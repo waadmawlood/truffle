@@ -41,7 +41,7 @@ trait MigrationProcess
             return;
         }
 
-        $records = $this->getRecords();
+        $records = $this->getCachedRecords();
         $firstRecord = ! empty($records) ? reset($records) : null;
 
         try {
