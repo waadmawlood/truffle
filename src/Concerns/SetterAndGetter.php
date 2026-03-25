@@ -6,7 +6,15 @@ trait SetterAndGetter
 {
     public function getRecords()
     {
-        return isset($this->records) ? $this->records : [];
+        if (isset($this->records) && ! empty($this->records)) {
+            return $this->records;
+        }
+
+        if ($this->getTruffleFile()) {
+            return $this->getFileRecords();
+        }
+
+        return [];
     }
 
     public function getSchema()

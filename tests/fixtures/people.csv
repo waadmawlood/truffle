@@ -1,0 +1,4 @@
+id,name,email,is_admin,age
+1,Waad Mawlood,waad@example.com,1,30
+2,John Doe,john@example.com,0,25
+3,Jane Smith,jane@example.com,0,28

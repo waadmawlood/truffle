@@ -8,7 +8,7 @@
 
 A Laravel package for creating in-memory models using SQLite. Perfect for static data, test fixtures, and high-performance read operations.
 
-**Features**: Zero configuration • Full Eloquent support • Type safety • Performance optimized • Per-model caching
+**Features**: Zero configuration • Full Eloquent support • Type safety • Performance optimized • Per-model caching • CSV/JSON/XML file support
 
 ## Installation
 
@@ -305,6 +305,185 @@ $model->isTruffleCacheEnabled();
 $model->getTruffleCacheKey();
 ```
 
+### File-Based Records (CSV/JSON/XML)
+
+Instead of defining records as PHP arrays, you can load them from CSV, JSON, or XML files. The file format is auto-detected from the extension.
+
+#### CSV File
+```php
+class Country extends Model
+{
+    use Truffle;
+
+    protected $truffleFile = __DIR__ . '/../data/countries.csv';
+
+    protected $schema = [
+        'code' => DataType::String,
+        'name' => DataType::String,
+    ];
+}
+```
+
+The CSV file should have a header row:
+```csv
+code,name
+US,United States
+CA,Canada
+UK,United Kingdom
+```
+
+#### JSON File
+```php
+class Product extends Model
+{
+    use Truffle;
+
+    protected $truffleFile = __DIR__ . '/../data/products.json';
+}
+```
+
+The JSON file should contain an array of objects:
+```json
+[
+    {"id": 1, "name": "Laptop", "price": 999.99},
+    {"id": 2, "name": "Coffee Mug", "price": 12.50}
+]
+```
+
+#### XML File
+```php
+class Category extends Model
+{
+    use Truffle;
+
+    protected $truffleFile = __DIR__ . '/../data/categories.xml';
+    protected $truffleFileRecordElement = 'category';
+}
+```
+
+The XML file structure:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<categories>
+    <category>
+        <id>1</id>
+        <name>Electronics</name>
+    </category>
+    <category>
+        <id>2</id>
+        <name>Kitchen</name>
+    </category>
+</categories>
+```
+
+#### CSV Custom Delimiter
+```php
+class Product extends Model
+{
+    use Truffle;
+
+    protected $truffleFile = __DIR__ . '/../data/products.csv';
+    protected $truffleFileDelimiter = ';';  // Semicolon-separated
+    protected $truffleFileEnclosure = '"';
+    protected $truffleFileEscape = '\\';
+}
+```
+
+#### Dynamic File Loading
+
+You can load file data dynamically from within `getRecords()` using the built-in helper methods:
+
+```php
+class Country extends Model
+{
+    use Truffle;
+
+    public function getRecords()
+    {
+        return $this->fromCsvFile(__DIR__ . '/../data/countries.csv');
+    }
+}
+```
+
+```php
+class Product extends Model
+{
+    use Truffle;
+
+    public function getRecords()
+    {
+        return $this->fromJsonFile(storage_path('data/products.json'));
+    }
+}
+```
+
+```php
+class Category extends Model
+{
+    use Truffle;
+
+    public function getRecords()
+    {
+        return $this->fromXmlFile(
+            __DIR__ . '/../data/categories.xml',
+            'category' // record element name
+        );
+    }
+}
+```
+
+You can also use `fromFile()` with auto-detection or explicit type:
+```php
+public function getRecords()
+{
+    // Auto-detect format from extension
+    return $this->fromFile(__DIR__ . '/../data/records.csv');
+
+    // Or specify the type and options explicitly
+    return $this->fromFile(__DIR__ . '/../data/records.dat', 'csv', [
+        'delimiter' => ';',
+    ]);
+}
+```
+
+CSV options for `fromCsvFile()`:
+```php
+public function getRecords()
+{
+    return $this->fromCsvFile(
+        __DIR__ . '/../data/products.csv',
+        ';',   // delimiter
+        '"',   // enclosure
+        '\\'   // escape
+    );
+}
+```
+
+> **Note:** If both `$records` and `$truffleFile` are defined, the `$records` array takes priority. This lets you override file data in tests.
+
+#### File Properties Reference
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `$truffleFile` | `string\|null` | `null` | Path to data file (CSV, JSON, or XML) |
+| `$truffleFileType` | `string\|null` | `null` | Explicit file type (`csv`, `json`, `xml`). `null` auto-detects from extension |
+| `$truffleFileDelimiter` | `string` | `','` | CSV column delimiter |
+| `$truffleFileEnclosure` | `string` | `'"'` | CSV field enclosure character |
+| `$truffleFileEscape` | `string` | `'\\'` | CSV escape character |
+| `$truffleFileRecordElement` | `string\|null` | `null` | XML child element name. `null` iterates all direct children |
+
+#### File Methods
+```php
+$model->getTruffleFile()               // Get the configured file path
+$model->getTruffleFileType()           // Get file type (auto-detected or explicit)
+$model->getFileRecords()               // Read records from the configured $truffleFile
+$model->fromFile($path)                // Read records from any file (auto-detect format)
+$model->fromFile($path, 'csv', [...])  // Read with explicit type and options
+$model->fromCsvFile($path)             // Read records from a CSV file
+$model->fromJsonFile($path)            // Read records from a JSON file
+$model->fromXmlFile($path, $element)   // Read records from an XML file
+```
+
 ## Use Cases
 
 ### Static Reference Data
@@ -372,6 +551,22 @@ Model::isTruffleSqliteFile()        // Check if using file-based SQLite
 Model::getTruffleSqliteFile()       // Get the configured file path
 ```
 
+### File Methods
+```php
+$model->getTruffleFile()               // Get the configured file path
+$model->getTruffleFileType()           // Get file type (auto-detected or explicit)
+$model->getFileRecords()               // Read records from the configured $truffleFile
+$model->fromFile($path)                // Read records from any file (auto-detect format)
+$model->fromFile($path, 'csv', [...])  // Read with explicit type and options
+$model->fromCsvFile($path)             // Read records from a CSV file
+$model->fromJsonFile($path)            // Read records from a JSON file
+$model->fromXmlFile($path, $element)   // Read records from an XML file
+$model->getTruffleFileDelimiter()      // Get CSV delimiter
+$model->getTruffleFileEnclosure()      // Get CSV enclosure character
+$model->getTruffleFileEscape()         // Get CSV escape character
+$model->getTruffleFileRecordElement()  // Get XML record element name
+```
+
 ### Cache Methods
 ```php
 Model::clearTruffleCache()          // Remove cached records
@@ -404,7 +599,7 @@ composer test
 - [x] SQLite in-memory support
 - [x] SQLite file support
 - [x] Caching support
-- [ ] Support for CSV/JSON/XML files
+- [x] Support for CSV/JSON/XML files
 - [ ] Multi-tenancy support
 
 ## Credits

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<people>
+    <person>
+        <id>1</id>
+        <name>Waad Mawlood</name>
+        <email>waad@example.com</email>
+        <is_admin>true</is_admin>
+        <age>30</age>
+    </person>
+    <person>
+        <id>2</id>
+        <name>John Doe</name>
+        <email>john@example.com</email>
+        <is_admin>false</is_admin>
+        <age>25</age>
+    </person>
+    <person>
+        <id>3</id>
+        <name>Jane Smith</name>
+        <email>jane@example.com</email>
+        <is_admin>false</is_admin>
+        <age>28</age>
+    </person>
+</people>
