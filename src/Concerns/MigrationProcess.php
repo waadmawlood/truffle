@@ -12,6 +12,10 @@ trait MigrationProcess
 {
     public function migrate()
     {
+        if ($this->shouldSkipMigration()) {
+            return;
+        }
+
         $records = $this->getCachedRecords();
         ! empty($records) ?
             $this->createTable(reset($records)) :
@@ -26,7 +30,26 @@ trait MigrationProcess
         }
     }
 
-    public function migrateToDefaultConnection(): void
+    protected function shouldSkipMigration()
+    {
+        if (! static::isTruffleSqliteFile()) {
+            return false;
+        }
+
+        $file = static::getTruffleSqliteFile();
+        if (! $file || ! file_exists($file) || filesize($file) === 0) {
+            return false;
+        }
+
+        $connection = static::resolveConnection();
+        if (! $connection) {
+            return false;
+        }
+
+        return $connection->getSchemaBuilder()->hasTable($this->getTable());
+    }
+
+    public function migrateToDefaultConnection()
     {
         $defaultConnectionName = config('database.default');
 
@@ -41,7 +64,7 @@ trait MigrationProcess
             return;
         }
 
-        $records = $this->getRecords();
+        $records = $this->getCachedRecords();
         $firstRecord = ! empty($records) ? reset($records) : null;
 
         try {
@@ -82,7 +105,7 @@ trait MigrationProcess
         });
     }
 
-    protected function buildColumnDefinitions(Blueprint $table, ?array $firstRecord = null): void
+    protected function buildColumnDefinitions(Blueprint $table, $firstRecord = null)
     {
         $schema = $this->getSchema();
 
@@ -140,7 +163,7 @@ trait MigrationProcess
         }
     }
 
-    protected function processRecordsForInsert(array $records): array
+    protected function processRecordsForInsert(array $records)
     {
         return array_map(function ($record) {
             foreach ($record as $key => $value) {
